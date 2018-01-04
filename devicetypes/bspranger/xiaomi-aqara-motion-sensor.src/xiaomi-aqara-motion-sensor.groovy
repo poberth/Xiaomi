@@ -26,20 +26,26 @@
  *  Removed non working tiles and changed layout and incorporated latest colours
  *  Added experimental health check as worked out by rolled54.Why
  *  bspranger - renamed to bspranger to remove confusion of a4refillpad
+ *  modified 04/01/2018 poberth
+ *    Added illuminance capability so that the attribute can be exported through the MQTT Bridge written by stjohn
+ *    Modified light attributes to illuminance
+ *    Modified illuminance unit from % to lux
+ *    Renamed to poberth to remove confusion of bspranger
  */
 
 metadata {
-    definition (name: "Xiaomi Aqara Motion Sensor", namespace: "bspranger", author: "bspranger") {
+    definition (name: "Xiaomi Aqara Motion Sensor", namespace: "poberth", author: "Pierre-Olivier Berthiaume") {
         capability "Motion Sensor"
         capability "Configuration"
         capability "Battery"
         capability "Sensor"
         capability "Refresh"
         capability "Health Check"
+        capability "Illuminance Measurement"
 
         attribute "lastCheckin", "String"
         attribute "lastMotion", "String"
-        attribute "light", "number"
+        attribute "illuminance", "number"
 
         fingerprint profileId: "0104", deviceId: "0104", inClusters: "0000, 0003, FFFF, 0019", outClusters: "0000, 0004, 0003, 0006, 0008, 0005, 0019", manufacturer: "LUMI", model: "lumi.sensor_motion", deviceJoinName: "Xiaomi Motion"
         fingerprint endpointId: "01", profileId: "0104", deviceId: "0107", inClusters: "0000,FFFF,0406,0400,0500,0001,0003", outClusters: "0000,0019", manufacturer: "LUMI", model: "lumi.sensor_motion.aq2", deviceJoinName: "Xiaomi Aqara Motion Sensor"
@@ -73,8 +79,8 @@ metadata {
                 [value: 51, color: "#44b621"]
             ]
         }
-        valueTile("light", "device.Light", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
-            state "light", label:'${currentValue}% \nLight', unit: ""
+        valueTile("illuminance", "device.illuminance", decoration: "flat", inactiveLabel: false, width: 2, height: 2) {
+            state "luminosity", label:'${currentValue}', unit: "lux"
         }
         standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", action:"reset", label: "Reset Motion", icon:"st.motion.motion.active"
@@ -125,15 +131,15 @@ def parse(String description) {
 private Map parseIlluminanceMessage(String description) {
     def linkText = getLinkText(device)
     def result = [
-        name: 'Light',
-        value: '--'
+        name: 'illuminance',
+        value: '--',
+        unit: "lux"
     ]
     def value = ((description - "illuminance: ").trim()) as Float
     result.value = value
-    result.descriptionText = "${linkText} Light was ${result.value}"
+    result.descriptionText = "${linkText} illuminance was ${result.value}${result.unit}"
     return result;
 }
-
 
 private Map getBatteryResult(rawValue) {
     def linkText = getLinkText(device)
